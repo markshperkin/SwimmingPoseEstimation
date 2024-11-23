@@ -2,6 +2,18 @@ import os
 from torch.utils.data import DataLoader
 from dataloader import SwimmerDataset  # Ensure the correct import path
 
+def count_total_frames(dataset):
+    """
+    Function to count the total number of frames in the dataset.
+
+    Args:
+        dataset (SwimmerDataset): The dataset instance to count frames from.
+
+    Returns:
+        int: Total number of frames in the dataset.
+    """
+    return len(dataset)
+
 def test_dataloader(batch_size=4):
     """
     Function to test the SwimmerDataset data loader.
@@ -13,12 +25,16 @@ def test_dataloader(batch_size=4):
         # Initialize the dataset
         dataset = SwimmerDataset()
 
+        # Count the total frames in the dataset
+        total_frames = count_total_frames(dataset)
+        print(f"Total frames in the dataset: {total_frames}")
+
         # Initialize the data loader
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         # Iterate over one batch
         for batch_idx, data in enumerate(dataloader):
-            print(f"Batch {batch_idx + 1} Loaded:")
+            print(f"\nBatch {batch_idx + 1} Loaded:")
             print("Images shape:", data['image'].shape)
             print("Keypoints shape:", data['keypoints'].shape)
             print("Visibility shape:", data['visibility'].shape)
@@ -28,7 +44,7 @@ def test_dataloader(batch_size=4):
             # Only display the first batch for testing purposes
             break
 
-        print("Data loader test successful.")
+        print("\nData loader test successful.")
 
     except Exception as e:
         print("Error occurred while testing the data loader:", e)

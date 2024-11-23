@@ -29,12 +29,13 @@ class VideoPoseEstimator:
             ToTensor()
         ])
 
-    def process_frame(self, frame):
+    def process_frame(self, frame, confidence_threshold=0.5):
         """
-        Process a single frame for pose estimation.
+        Process a single frame for pose estimation with a confidence threshold.
 
         Args:
             frame (numpy.ndarray): The input video frame (H, W, C).
+            confidence_threshold (float): Minimum confidence to display a keypoint.
 
         Returns:
             numpy.ndarray: Frame with pose estimations overlaid.
@@ -47,54 +48,62 @@ class VideoPoseEstimator:
         with torch.no_grad():
             predicted_heatmaps = self.model(frame_tensor)
 
-        # Process heatmaps to extract keypoints
-        keypoints = self.extract_keypoints(predicted_heatmaps[0])
+        # Process heatmaps to extract keypoints and confidences
+        keypoints, confidences = self.extract_keypoints_with_confidences(predicted_heatmaps[0])
 
-        # Define skeleton connections based on annotation
+        # Apply confidence threshold
+        filtered_keypoints = [
+            (x, y) if conf >= confidence_threshold else (None, None)
+            for (x, y), conf in zip(keypoints, confidences)
+        ]
+
+        # Define skeleton connections
         skeleton = [[9, 7], [2, 0], [11, 9], [12, 10], [10, 8], [5, 3],
                     [3, 1], [4, 6], [6, 5], [4, 5], [8, 7], [4, 2],
                     [5, 8], [7, 4]]
 
-
         # Overlay keypoints and skeleton on the frame
-        output_frame = self.overlay_keypoints(original_frame, keypoints, heatmap_size=(64, 64))
-        output_frame = self.overlay_skeleton(output_frame, keypoints, skeleton, heatmap_size=(64, 64))
+        output_frame = self.overlay_keypoints(original_frame, filtered_keypoints, confidences, confidence_threshold)
+        output_frame = self.overlay_skeleton(output_frame, filtered_keypoints, skeleton)
 
         return output_frame
 
-
-
-    def extract_keypoints(self, heatmaps):
+    def extract_keypoints_with_confidences(self, heatmaps):
         """
-        Extract keypoints from heatmaps.
+        Extract keypoints and their confidences from heatmaps.
 
         Args:
             heatmaps (torch.Tensor): Predicted heatmaps of shape [K, H, W].
 
         Returns:
-            list: List of keypoint coordinates [(x1, y1), (x2, y2), ...].
+            tuple: (list of keypoint coordinates [(x1, y1), ...],
+                    list of confidence scores [c1, c2, ...]).
         """
         keypoints = []
+        confidences = []
         for i in range(heatmaps.shape[0]):  # Iterate over each keypoint
             heatmap = heatmaps[i].cpu().numpy()
             y, x = np.unravel_index(np.argmax(heatmap), heatmap.shape)
-            keypoints.append((x, y))  # Append (x, y) coordinates
-        return keypoints
+            confidence = heatmap[y, x]
+            keypoints.append((x, y))
+            confidences.append(confidence)
+        return keypoints, confidences
 
-    def overlay_keypoints(self, frame, keypoints, heatmap_size=(64, 64)):
+    def overlay_keypoints(self, frame, keypoints, confidences, confidence_threshold):
         """
         Overlay keypoints and their names on the frame with colors.
 
         Args:
             frame (numpy.ndarray): Original video frame.
             keypoints (list): List of keypoint coordinates [(x1, y1), ...].
-            heatmap_size (tuple): Size of the predicted heatmaps (H, W).
+            confidences (list): List of confidence scores for each keypoint.
+            confidence_threshold (float): Minimum confidence to display a keypoint.
 
         Returns:
             numpy.ndarray: Frame with keypoints and names overlaid.
         """
         frame_height, frame_width = frame.shape[:2]
-        heatmap_width, heatmap_height = heatmap_size
+        heatmap_width, heatmap_height = 64, 64  # Assuming heatmap size is 64x64
 
         # Keypoint names and corresponding colors
         keypoint_data = {
@@ -116,25 +125,27 @@ class VideoPoseEstimator:
         keypoint_names = list(keypoint_data.keys())
         keypoint_colors = list(keypoint_data.values())
 
-        for i, (x, y) in enumerate(keypoints):
+        for i, (keypoint, confidence) in enumerate(zip(keypoints, confidences)):
+            if keypoint[0] is None or confidence < confidence_threshold:
+                continue  # Skip keypoints below the threshold
+
             # Scale keypoints from heatmap size to frame size
-            scaled_x = int(x * frame_width / heatmap_width)
-            scaled_y = int(y * frame_height / heatmap_height)
+            scaled_x = int(keypoint[0] * frame_width / heatmap_width)
+            scaled_y = int(keypoint[1] * frame_height / heatmap_height)
 
             # Draw the keypoint as a circle
             color = keypoint_colors[i] if i < len(keypoint_colors) else (255, 255, 255)  # Default white if out of range
             cv2.circle(frame, (scaled_x, scaled_y), radius=5, color=color, thickness=-1)
 
-            # Overlay the keypoint name
+            # Overlay the keypoint name and confidence
             keypoint_name = keypoint_names[i] if i < len(keypoint_names) else f"Keypoint {i+1}"
             cv2.putText(
-                frame, keypoint_name, (scaled_x, scaled_y - 10),
+                frame, f"{keypoint_name} ({confidence:.2f})", (scaled_x, scaled_y - 10),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
                 color=color, thickness=1, lineType=cv2.LINE_AA
             )
 
         return frame
-
 
 
     def overlay_skeleton(self, frame, keypoints, skeleton, heatmap_size=(64, 64)):
@@ -208,8 +219,8 @@ if __name__ == "__main__":
     video_pose_estimator = VideoPoseEstimator(model, config)
 
     # Input and output video paths
-    input_video_path = "13_2_10_17.mov"  # Replace with your input video path
-    output_video_path = "output_pose_video2.mp4"  # Replace with your desired output video path
+    input_video_path = "20_2_17_35.mp4"  # Replace with your input video path
+    output_video_path = "output_pose3.mp4"  # Replace with your desired output video path
 
     # Process the video
     video_pose_estimator.process_video(input_video_path, output_video_path)
