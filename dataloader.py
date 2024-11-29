@@ -6,25 +6,32 @@ from PIL import Image
 import torchvision.transforms as T
 import torch.nn.functional as F
 import torch
+from Augmentation import Augmentation  # Import the Augmentation class
 
 class SwimmerDataset(Dataset):
     """
     Dataset class for loading and processing the COCO-format swimmer dataset
-    with 13 keypoints.
+    with 13 keypoints and integrated data augmentation.
     """
-    def __init__(self, root_dir='data', image_size=(256, 256)):
+    def __init__(self, root_dir='data', image_size=(256, 256), augmentation=True):
         """
         Initialize the dataset.
 
         Args:
             root_dir (str): Root directory containing video directories.
             image_size (tuple): Target size (height, width) for resizing images and heatmaps.
+            augmentation (bool): Flag to enable or disable augmentation.
         """
         self.root_dir = root_dir
-        self.image_size = image_size  # Target image size (height, width)
+        self.image_size = image_size
+        self.augmentation = augmentation
         self.video_dirs = self._discover_video_directories()
         self.annotations = self._load_annotations()
         self.image_ids = list(self.annotations.keys())
+        self.augmenter = Augmentation()  # Initialize the augmentation class
+
+        # Double the dataset by flipping and appending flipped data
+        self._double_dataset_with_flip()
 
     def _discover_video_directories(self):
         """
@@ -47,57 +54,85 @@ class SwimmerDataset(Dataset):
             dict: Dictionary mapping image IDs to annotation data.
         """
         annotations = {}
-        total_frames = 0  # Counter for the total number of frames loaded
+        total_frames = 0
 
         for video_dir in self.video_dirs:
             annotations_dir = os.path.join(video_dir, 'annotations')
             images_dir = os.path.join(video_dir, 'images')
 
-            # Find the annotation JSON file (there is only one per video directory)
             annotation_files = [
                 f for f in os.listdir(annotations_dir) if f.endswith('.json')
             ]
             if len(annotation_files) != 1:
                 print(f"Skipping {video_dir}: Expected 1 annotation file, found {len(annotation_files)}.")
-                continue  # Skip if no valid annotation file
+                continue
 
             annotation_path = os.path.join(annotations_dir, annotation_files[0])
 
-            # Load the annotation JSON file
             with open(annotation_path, 'r') as f:
                 annotation_data = json.load(f)
 
-            # Map image IDs to annotations
             for image in annotation_data['images']:
-                # Add video-specific prefix to image_id
-                image_id = f"{os.path.basename(video_dir)}_{image['id']}"  
+                image_id = f"{os.path.basename(video_dir)}_{image['id']}"
                 img_annotations = [
                     ann for ann in annotation_data['annotations'] if ann['image_id'] == image['id']
                 ]
-                
-                # Only create entry if annotations exist
                 annotations[image_id] = {
                     'image_info': image,
                     'annotations': img_annotations,
                     'image_dir': images_dir,
                     'annotation_file': annotation_path
                 }
-
-                # Print debug information
-                print(f"Loaded annotations for image ID {image_id} from {annotation_path}.")
                 if len(img_annotations) == 0:
                     print(f"Warning: No annotations found for image ID {image_id}.")
                 else:
                     total_frames += 1
 
-        # Log the total number of loaded frames
         print(f"Total number of frames successfully loaded: {total_frames}")
         print(f"Unique image IDs in the dataset: {len(annotations.keys())}")
         return annotations
 
+    def _double_dataset_with_flip(self):
+        """
+        Double the dataset by flipping all frames and appending them as new samples.
+        """
+        flipped_annotations = {}
+        for image_id, data in self.annotations.items():
+            # Load original image and keypoints
+            image_path = os.path.join(data['image_dir'], data['image_info']['file_name'])
+            image = self.load_image(image_path)
+            keypoints, visibility = self.process_keypoints(data['annotations'], data['image_info'])
+
+            # Apply horizontal flip
+            image_np = image.permute(1, 2, 0).numpy() * 255
+            image_np = image_np.astype(np.uint8)
+            flipped_image_np, flipped_keypoints, flipped_visibility = self.augmenter.horizontalFlip(image_np, keypoints, visibility)
+
+            # Prepare flipped metadata
+            flipped_image_id = f"FLIPPED_{image_id}"
+            flipped_annotations[flipped_image_id] = {
+                'image_info': {
+                    'file_name': f"FLIPPED_{data['image_info']['file_name']}",
+                    'width': data['image_info']['width'],
+                    'height': data['image_info']['height']
+                },
+                'annotations': [{
+                    'keypoints': flipped_keypoints.flatten().tolist(),
+                    'visibility': flipped_visibility.tolist()
+                }],
+                'image_dir': data['image_dir'],
+                'annotation_file': data['annotation_file']
+            }
+
+        # Append flipped data to the original annotations
+        self.annotations.update(flipped_annotations)
+        self.image_ids.extend(flipped_annotations.keys())
+        print(f"Dataset doubled with flipped data. Total frames: {len(self.image_ids)}")
 
     def __len__(self):
-        """Return the total number of images in the dataset."""
+        """
+        Return the total number of images in the dataset.
+        """
         return len(self.image_ids)
 
     def __getitem__(self, idx):
@@ -110,19 +145,44 @@ class SwimmerDataset(Dataset):
         Returns:
             dict: Processed image, keypoints, visibility, and metadata.
         """
-        image_id = self.image_ids[idx]
-        annotation_data = self.annotations[image_id]
+        # Check if the sample is flipped based on the image ID
+        is_flipped_sample = self.image_ids[idx].startswith("FLIPPED_")
+        original_image_id = self.image_ids[idx].replace("FLIPPED_", "") if is_flipped_sample else self.image_ids[idx]
+        
+        annotation_data = self.annotations[original_image_id]
         image_info = annotation_data['image_info']
         annotations = annotation_data['annotations']
         image_dir = annotation_data['image_dir']
-        annotation_file = annotation_data['annotation_file']
 
-        # Load and resize image
+        # Load and resize the image
         image_path = os.path.join(image_dir, image_info['file_name'])
-        image = self.load_image(image_path)
+        image = self.load_image(image_path)  # Tensor format
 
         # Load and process keypoints
         keypoints, visibility = self.process_keypoints(annotations, image_info)
+
+        # Apply flipping dynamically if this is a flipped sample
+        if is_flipped_sample:
+            # Convert tensor to NumPy for augmentation
+            image_np = image.permute(1, 2, 0).numpy() * 255  # [C, H, W] → [H, W, C], scale [0, 1] → [0, 255]
+            image_np = image_np.astype(np.uint8)
+            image_np, keypoints, visibility = self.augmenter.horizontalFlip(image_np, keypoints, visibility)
+            image = torch.tensor(image_np / 255.0, dtype=torch.float32).permute(2, 0, 1)
+
+        # Apply other augmentations (e.g., rotation, translation) based on percentages
+        if np.random.rand() < 0.1:  # 10% chance for translation
+            image_np = image.permute(1, 2, 0).numpy() * 255
+            image_np = image_np.astype(np.uint8)
+            image_np, keypoints, visibility = self.augmenter.translate_image_and_keypoints(image_np, keypoints, visibility)
+            image = torch.tensor(image_np / 255.0, dtype=torch.float32).permute(2, 0, 1)
+
+
+        if np.random.rand() < 0.2:  # 20% chance for rotation
+            image_np = image.permute(1, 2, 0).numpy() * 255
+            image_np = image_np.astype(np.uint8)
+            image_np, keypoints, visibility = self.augmenter.rotate_image_and_keypoints(image_np, keypoints, visibility)
+            image = torch.tensor(image_np / 255.0, dtype=torch.float32).permute(2, 0, 1)
+
 
         # Create heatmaps for keypoints
         heatmaps = self.create_heatmaps(keypoints, visibility)
@@ -141,12 +201,10 @@ class SwimmerDataset(Dataset):
             'visibility': torch.tensor(visibility, dtype=torch.int32),
             'heatmaps': torch.tensor(heatmaps_downsampled, dtype=torch.float32),
             'meta': {
-                'image_id': image_id,
-                'image_and_annotation': f"Image: {image_path}, Annotation File: {annotation_file}",  # Image and annotation on the same line
+                'image_id': self.image_ids[idx],
                 'original_size': (image_info['width'], image_info['height']),
             }
         }
-
 
     def load_image(self, image_path):
         """
@@ -188,6 +246,7 @@ class SwimmerDataset(Dataset):
             kp = np.array(ann['keypoints']).reshape(-1, 3)
             keypoints[:, :2] = kp[:, :2]
             visibility[:] = kp[:, 2]
+
 
         # Scale keypoints to match resized image dimensions
         orig_width, orig_height = image_info['width'], image_info['height']

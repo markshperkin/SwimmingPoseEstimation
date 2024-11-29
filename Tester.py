@@ -29,7 +29,7 @@ class VideoPoseEstimator:
             ToTensor()
         ])
 
-    def process_frame(self, frame, confidence_threshold=0.5):
+    def process_frame(self, frame, confidence_threshold=0.3):
         """
         Process a single frame for pose estimation with a confidence threshold.
 
@@ -219,8 +219,8 @@ if __name__ == "__main__":
     video_pose_estimator = VideoPoseEstimator(model, config)
 
     # Input and output video paths
-    input_video_path = "20_2_17_35.mp4"  # Replace with your input video path
-    output_video_path = "output_pose3.mp4"  # Replace with your desired output video path
+    input_video_path = "43_2_40_96.mp4"  # Replace with your input video path
+    output_video_path = "output_posetest.mp4"  # Replace with your desired output video path
 
     # Process the video
     video_pose_estimator.process_video(input_video_path, output_video_path)

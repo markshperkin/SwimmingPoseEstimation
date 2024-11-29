@@ -49,16 +49,27 @@ class HRNetTester:
         self.model.load_state_dict(checkpoint, strict=False)
         print("Weights successfully loaded!")  # Debug print
 
-    def test_and_visualize(self):
+    def test_and_visualize(self, frame_index=None):
         """
-        Tests the HRNet model on a single batch and visualizes the results.
+        Tests the HRNet model on a single batch or a specific frame and visualizes the results.
+
+        Args:
+            frame_index (int, optional): Index of the specific frame to test. If None, loads the next batch.
         """
-        print("Loading sample batch for testing...")  # Debug print
-        sample = next(iter(self.dataloader))
-        image = sample["image"].to(self.device)  # [B, C, H, W]
-        ground_truth_heatmaps = sample["heatmaps"]  # [B, K, H, W]
-        keypoints_gt = sample["keypoints"][0].cpu().numpy()  # Ground truth keypoints
-        meta = sample["meta"]  # Metadata for debugging purposes
+        if frame_index is not None:
+            print(f"Testing on frame index: {frame_index}...")  # Debug print
+            sample = self.dataset[frame_index]  # Access a specific frame by index
+            image = sample["image"].unsqueeze(0).to(self.device)  # [1, C, H, W]
+            ground_truth_heatmaps = sample["heatmaps"].unsqueeze(0)  # [1, K, H, W]
+            keypoints_gt = sample["keypoints"].cpu().numpy()  # Ground truth keypoints
+            meta = sample["meta"]  # Metadata for debugging purposes
+        else:
+            print("Loading sample batch for testing...")  # Debug print
+            sample = next(iter(self.dataloader))
+            image = sample["image"].to(self.device)  # [B, C, H, W]
+            ground_truth_heatmaps = sample["heatmaps"]  # [B, K, H, W]
+            keypoints_gt = sample["keypoints"][0].cpu().numpy()  # Ground truth keypoints
+            meta = sample["meta"]  # Metadata for debugging purposes
 
         print(f"Ground Truth Keypoints (Original Scale): {keypoints_gt}")  # Debug print
         print(f"Image Dimensions: {image[0].shape[1:]}")  # Debug print
@@ -96,7 +107,7 @@ class HRNetTester:
         distances = self.calculate_distance(keypoints_gt, pred_keypoints_rescaled, original_size)
         print(f"Distances: {distances}")  # Debug print
 
-        # Visualize the results
+        # Visualize the results (same visualization code as before)
         fig, axs = plt.subplots(4, num_keypoints + 1, figsize=(30, 20))
         fig.suptitle("Original Image, GT Keypoints, Confidence, Predicted Keypoints, and Distance", fontsize=16)
 
@@ -167,7 +178,7 @@ class HRNetTester:
 if __name__ == "__main__":
     # Path to config.yaml and weights
     config_path = "config.yaml"
-    weights_path = "hrnet_checkpoint.pth"  # Update this to the correct weights path
+    weights_path = "411Fmodel.pth"  # Update this to the correct weights path
 
     # Initialize the tester
     tester = HRNetTester(config_path, batch_size=1, device="cuda")
@@ -176,4 +187,4 @@ if __name__ == "__main__":
     tester.load_weights(weights_path)
 
     # Test and visualize
-    tester.test_and_visualize()
+    tester.test_and_visualize(frame_index=100)
