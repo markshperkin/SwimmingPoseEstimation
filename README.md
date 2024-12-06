@@ -8,7 +8,7 @@ Leveraging HRNet's ability to maintain high-resolution representations throughou
 The dataset for this project was collected from the **University of South Carolina Swim and Dive Team**. The athletes' performances were recorded during training sessions to generate a comprehensive dataset for underwater pose estimation. 
 You can learn more about the swim and dive team [here](https://gamecocksonline.com/sports/swimming/).
 <br>The dataset used for training can be found in the data directory. it contains a few dataset directories, each from a different video. each dataset will have a directory for the frames and the COCO format JSON annotation file.
-<br>The dataset is tailored for underwater swimming poses, annotated with 13 keypoints to represent swimmer biomechanics.
+each frame is annotated with 13 keypoints to represent swimmer biomechanics.
 
 
 ## Implementation Details
@@ -67,7 +67,7 @@ The `testerAugmentation.py` script will test three data augmentation techniques,
 python testerAugmentation.py
 ```
 ### Test the Data Loader:
-The `testerDATALOADER.py` script will test the functionality of the dataloader by laoding the dataset and displaying a batch of 4 frames with their name and coresponding keypoints.
+The `testerDATALOADER.py` script will test the functionality of the dataloader by loading the dataset and displaying a batch of 4 frames with their name and corresponding keypoints.
 <br> To run the dataloader tester:
 ```bash
 python testerDATALOADER.py
