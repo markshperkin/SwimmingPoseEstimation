@@ -7,6 +7,8 @@ Leveraging HRNet's ability to maintain high-resolution representations throughou
 ## Data Collection
 The dataset for this project was collected from the **University of South Carolina Swim and Dive Team**. The athletes' performances were recorded during training sessions to generate a comprehensive dataset for underwater pose estimation. 
 You can learn more about the swim and dive team [here](https://gamecocksonline.com/sports/swimming/).
+<be>The dataset used for training can be found in the data directory. it contains a few dataset directories, each from a different video. each dataset will have a directory for the frames and the COCO format JSON annotation file.
+
 
 ## Implementation Details
 
@@ -48,7 +50,6 @@ This script will estimate keypoints found in the video and output a new video wi
 
 ### 2. Training the Model
 
-The dataset used for training can be found in the data directory. it contains a few datasets, each from a different video. each dataset will have a directory for the frames and the COCO format JSON annotation file.
 The data loader combines all datasets into one. <br> After a new minimum has been found, the trainer will save the model as a checkpoint.pth.
 <br> To initialize the training, run the `hrnetTrainer.py`
 ```bash
