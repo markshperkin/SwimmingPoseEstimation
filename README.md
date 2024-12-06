@@ -8,6 +8,7 @@ Leveraging HRNet's ability to maintain high-resolution representations throughou
 The dataset for this project was collected from the **University of South Carolina Swim and Dive Team**. The athletes' performances were recorded during training sessions to generate a comprehensive dataset for underwater pose estimation. 
 You can learn more about the swim and dive team [here](https://gamecocksonline.com/sports/swimming/).
 <br>The dataset used for training can be found in the data directory. it contains a few dataset directories, each from a different video. each dataset will have a directory for the frames and the COCO format JSON annotation file.
+<br>The dataset is tailored for underwater swimming poses, annotated with 13 keypoints to represent swimmer biomechanics.
 
 
 ## Implementation Details
@@ -15,11 +16,6 @@ You can learn more about the swim and dive team [here](https://gamecocksonline.c
 This project was developed based on the research paper **"[Deep High-Resolution Representation Learning for Human Pose Estimation](https://openaccess.thecvf.com/content_CVPR_2019/papers/Sun_Deep_High-Resolution_Representation_Learning_for_Human_Pose_Estimation_CVPR_2019_paper.pdf)"** 
 by Ke Sun, Bin Xiao, Dong Liu, and Jingdong Wang. The paper introduces HRNet, which maintains high-resolution representations throughout the process, achieving superior accuracy in pose estimation tasks.
 This project's implementation draws inspiration from Bin Xiao's official HRNet repository, which is available on GitHub [here](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch?tab=readme-ov-file).
-
-## Key Features
-
-- **HRNet Architecture**: Designed to maintain high-resolution representations for accurate spatial keypoint detection.
-- **Custom Dataset**: Tailored for underwater swimming poses, annotated with 13 keypoints to represent swimmer biomechanics.
 
 ## Installation
 
