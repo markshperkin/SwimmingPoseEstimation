@@ -1,13 +1,9 @@
 # ------------------------------------------------------------------------------
 # Copyright (c) Microsoft
 # Licensed under the MIT License.
-# Written by Bin Xiao (Bin.Xiao@microsoft.com)
+# imported code written Bin Xiao (Bin.Xiao@microsoft.com)
+# modified by Mark Shperkin
 # ------------------------------------------------------------------------------
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import torch
 import torch.nn as nn
 
@@ -26,14 +22,14 @@ class JointsMSELoss(nn.Module):
         loss = 0
 
         for idx in range(num_joints):
-            # Extract heatmap predictions and ground truths for the current joint
-            heatmap_pred = heatmaps_pred[idx].squeeze()  # Shape: [batch_size, flattened_size]
-            heatmap_gt = heatmaps_gt[idx].squeeze()  # Shape: [batch_size, flattened_size]
+            # extract heatmap predictions and ground truths for the current joint with shape [batch_size, flattened_size]
+            heatmap_pred = heatmaps_pred[idx].squeeze()
+            heatmap_gt = heatmaps_gt[idx].squeeze()
             
-            # Expand target_weight to match the shape of heatmap_pred
-            target_weight_expanded = target_weight[:, idx].unsqueeze(1)  # Shape: [batch_size, 1]
+            # expand target_weight to match the shape of heatmap_pred with shape [batch_size, 1]
+            target_weight_expanded = target_weight[:, idx].unsqueeze(1)
             
-            # Apply target_weight during loss computation
+            # apply target_weight during loss computation
             if self.use_target_weight:
                 loss += 0.5 * self.criterion(
                     heatmap_pred * target_weight_expanded,
@@ -54,14 +50,14 @@ class JointsOHKMMSELoss(nn.Module):
 
     def ohkm(self, loss):
         ohkm_loss = 0.
-        for i in range(loss.size()[0]):  # Iterate over batch size
-            sub_loss = loss[i]  # Loss for a single sample
+        for i in range(loss.size()[0]):
+            sub_loss = loss[i]
             topk_val, topk_idx = torch.topk(
                 sub_loss, k=self.topk, dim=0, sorted=False
             )
             tmp_loss = torch.gather(sub_loss, 0, topk_idx)
             ohkm_loss += torch.sum(tmp_loss) / self.topk
-        ohkm_loss /= loss.size()[0]  # Normalize by batch size
+        ohkm_loss /= loss.size()[0]
         return ohkm_loss
 
     def forward(self, output, target, target_weight):
@@ -76,11 +72,11 @@ class JointsOHKMMSELoss(nn.Module):
             heatmap_gt = heatmaps_gt[idx].squeeze()  # [B, H*W]
 
             if self.use_target_weight:
-                # Expand target_weight to match spatial dimensions
+                # expand target_weight to match spatial dimensions
                 target_weight_expanded = target_weight[:, idx].unsqueeze(1)  # [B, 1]
                 target_weight_expanded = target_weight_expanded.expand_as(heatmap_pred)  # [B, H*W]
 
-                # Apply target weight to both predictions and ground truth
+                # apply target weight to both predictions and ground truth
                 weighted_pred = heatmap_pred * target_weight_expanded
                 weighted_gt = heatmap_gt * target_weight_expanded
 
@@ -88,8 +84,8 @@ class JointsOHKMMSELoss(nn.Module):
             else:
                 loss.append(0.5 * self.criterion(heatmap_pred, heatmap_gt))
 
-        # Compute mean loss per joint and concatenate
+        # compute mean loss per joint and concatenate
         loss = [l.mean(dim=1).unsqueeze(dim=1) for l in loss]  # [B, 1] for each joint
         loss = torch.cat(loss, dim=1)  # [B, K]
 
-        return self.ohkm(loss)  # Compute OHKM loss
+        return self.ohkm(loss)

@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft
 # Licensed under the MIT License.
 # Written by Bin Xiao (Bin.Xiao@microsoft.com)
+# Comented by Mark Shperkin
 # ------------------------------------------------------------------------------
 
 from __future__ import absolute_import
@@ -523,55 +524,7 @@ class PoseHighResolutionNet(nn.Module):
 # Initializes the HRNet using a configuration dictionary (cfg).
 # Loads pre-trained weights if specified.
 # Role: Entry point to instantiate the network during training or inference.
-def get_pose_net(config=None, is_train=True, **kwargs):
-    """
-    Creates a PoseHighResolutionNet instance with default or user-provided configuration.
-
-    Args:
-        config (dict, optional): Configuration dictionary. If None, default configuration is used.
-        is_train (bool): Whether the model is used for training. Defaults to True.
-        **kwargs: Additional arguments passed to the model.
-
-    Returns:
-        PoseHighResolutionNet: An instance of the model with initialized weights.
-    """
-    if config is None:
-        # Default configuration for the HRNet
-        config = {
-            'MODEL': {
-                'EXTRA': {
-                    'STAGE2': {
-                        'NUM_MODULES': 1,
-                        'NUM_BRANCHES': 2,
-                        'NUM_BLOCKS': [4, 4],
-                        'NUM_CHANNELS': [32, 64],
-                        'BLOCK': 'BASIC',
-                        'FUSE_METHOD': 'SUM'
-                    },
-                    'STAGE3': {
-                        'NUM_MODULES': 1,
-                        'NUM_BRANCHES': 3,
-                        'NUM_BLOCKS': [4, 4, 4],
-                        'NUM_CHANNELS': [32, 64, 128],
-                        'BLOCK': 'BASIC',
-                        'FUSE_METHOD': 'SUM'
-                    },
-                    'STAGE4': {
-                        'NUM_MODULES': 1,
-                        'NUM_BRANCHES': 4,
-                        'NUM_BLOCKS': [4, 4, 4, 4],
-                        'NUM_CHANNELS': [32, 64, 128, 256],
-                        'BLOCK': 'BASIC',
-                        'FUSE_METHOD': 'SUM'
-                    },
-                    'FINAL_CONV_KERNEL': 1,
-                    'PRETRAINED_LAYERS': ['*']
-                },
-                'NUM_JOINTS': 17,  # Default number of keypoints (e.g., COCO dataset)
-                'INIT_WEIGHTS': False  # Default to False since pre-trained weights are not used
-            }
-        }
-
+def get_pose_net(config, is_train=True, **kwargs):
     model = PoseHighResolutionNet(config, **kwargs)
 
     if is_train:

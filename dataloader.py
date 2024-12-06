@@ -1,3 +1,6 @@
+# ------------------------------------------------------------------------------
+# Written by Mark Shperkin
+# ------------------------------------------------------------------------------
 import os
 import json
 import numpy as np
@@ -6,7 +9,7 @@ from PIL import Image
 import torchvision.transforms as T
 import torch.nn.functional as F
 import torch
-from Augmentation import Augmentation  # Import the Augmentation class
+from Augmentation import Augmentation
 
 class SwimmerDataset(Dataset):
     """
@@ -16,11 +19,6 @@ class SwimmerDataset(Dataset):
     def __init__(self, root_dir='data', image_size=(256, 256), augmentation=True):
         """
         Initialize the dataset.
-
-        Args:
-            root_dir (str): Root directory containing video directories.
-            image_size (tuple): Target size (height, width) for resizing images and heatmaps.
-            augmentation (bool): Flag to enable or disable augmentation.
         """
         self.root_dir = root_dir
         self.image_size = image_size
@@ -28,15 +26,16 @@ class SwimmerDataset(Dataset):
         self.video_dirs = self._discover_video_directories()
         self.annotations = self._load_annotations()
         self.image_ids = list(self.annotations.keys())
-        self.augmenter = Augmentation()  # Initialize the augmentation class
+        self.augmenter = Augmentation()
 
-        # Double the dataset by flipping and appending flipped data
+        # double the dataset by flipping and appending flipped data
         self._double_dataset_with_flip()
+
+
 
     def _discover_video_directories(self):
         """
         Discover all video directories in the root directory.
-
         Returns:
             list: List of video directory paths.
         """
@@ -49,7 +48,6 @@ class SwimmerDataset(Dataset):
     def _load_annotations(self):
         """
         Load annotations and associate them with corresponding frames.
-
         Returns:
             dict: Dictionary mapping image IDs to annotation data.
         """
@@ -89,7 +87,6 @@ class SwimmerDataset(Dataset):
                     total_frames += 1
 
         print(f"Total number of frames successfully loaded: {total_frames}")
-        print(f"Unique image IDs in the dataset: {len(annotations.keys())}")
         return annotations
 
     def _double_dataset_with_flip(self):
@@ -98,17 +95,17 @@ class SwimmerDataset(Dataset):
         """
         flipped_annotations = {}
         for image_id, data in self.annotations.items():
-            # Load original image and keypoints
+            # load original image and keypoints
             image_path = os.path.join(data['image_dir'], data['image_info']['file_name'])
             image = self.load_image(image_path)
             keypoints, visibility = self.process_keypoints(data['annotations'], data['image_info'])
 
-            # Apply horizontal flip
+            # apply horizontal flip
             image_np = image.permute(1, 2, 0).numpy() * 255
             image_np = image_np.astype(np.uint8)
             flipped_image_np, flipped_keypoints, flipped_visibility = self.augmenter.horizontalFlip(image_np, keypoints, visibility)
 
-            # Prepare flipped metadata
+            # prepare flipped metadata
             flipped_image_id = f"FLIPPED_{image_id}"
             flipped_annotations[flipped_image_id] = {
                 'image_info': {
@@ -124,7 +121,7 @@ class SwimmerDataset(Dataset):
                 'annotation_file': data['annotation_file']
             }
 
-        # Append flipped data to the original annotations
+        # append flipped data to the original annotations
         self.annotations.update(flipped_annotations)
         self.image_ids.extend(flipped_annotations.keys())
         print(f"Dataset doubled with flipped data. Total frames: {len(self.image_ids)}")
@@ -138,14 +135,10 @@ class SwimmerDataset(Dataset):
     def __getitem__(self, idx):
         """
         Retrieve an image and its corresponding keypoints and annotations.
-
-        Args:
-            idx (int): Index of the image.
-
         Returns:
             dict: Processed image, keypoints, visibility, and metadata.
         """
-        # Check if the sample is flipped based on the image ID
+        # check if the sample is flipped based on the image ID
         is_flipped_sample = self.image_ids[idx].startswith("FLIPPED_")
         original_image_id = self.image_ids[idx].replace("FLIPPED_", "") if is_flipped_sample else self.image_ids[idx]
         
@@ -154,22 +147,22 @@ class SwimmerDataset(Dataset):
         annotations = annotation_data['annotations']
         image_dir = annotation_data['image_dir']
 
-        # Load and resize the image
+        # load and resize the image
         image_path = os.path.join(image_dir, image_info['file_name'])
-        image = self.load_image(image_path)  # Tensor format
+        image = self.load_image(image_path)
 
-        # Load and process keypoints
+        # load and process keypoints
         keypoints, visibility = self.process_keypoints(annotations, image_info)
 
-        # Apply flipping dynamically if this is a flipped sample
+        # apply flipping dynamically if this is a flipped sample
         if is_flipped_sample:
-            # Convert tensor to NumPy for augmentation
+            # convert tensor to NumPy for augmentation
             image_np = image.permute(1, 2, 0).numpy() * 255  # [C, H, W] → [H, W, C], scale [0, 1] → [0, 255]
             image_np = image_np.astype(np.uint8)
             image_np, keypoints, visibility = self.augmenter.horizontalFlip(image_np, keypoints, visibility)
             image = torch.tensor(image_np / 255.0, dtype=torch.float32).permute(2, 0, 1)
 
-        # Apply other augmentations (e.g., rotation, translation) based on percentages
+        # apply rotation and translation augmentations
         if np.random.rand() < 0.1:  # 10% chance for translation
             image_np = image.permute(1, 2, 0).numpy() * 255
             image_np = image_np.astype(np.uint8)
@@ -184,16 +177,16 @@ class SwimmerDataset(Dataset):
             image = torch.tensor(image_np / 255.0, dtype=torch.float32).permute(2, 0, 1)
 
 
-        # Create heatmaps for keypoints
+        # create heatmaps for keypoints
         heatmaps = self.create_heatmaps(keypoints, visibility)
 
-        # Downsample heatmaps to 64 x 64
+        # downsample heatmaps to 64 x 64
         heatmaps_downsampled = F.interpolate(
-            torch.tensor(heatmaps).unsqueeze(0),  # Add batch dimension
-            size=(64, 64),  # Target size
+            torch.tensor(heatmaps).unsqueeze(0),
+            size=(64, 64),
             mode='bilinear',
             align_corners=False
-        ).squeeze(0).numpy()  # Remove batch dimension
+        ).squeeze(0).numpy()
 
         return {
             'image': image, 
@@ -211,27 +204,19 @@ class SwimmerDataset(Dataset):
         Load an image from a given path, resize to a consistent resolution, and convert to PyTorch tensor format [C, H, W].
         """
         transform = T.Compose([
-            T.Resize(self.image_size),  # Resize to target size
-            T.ToTensor()               # Convert image to [C, H, W] and normalize to [0, 1]
+            T.Resize(self.image_size),
+            T.ToTensor() # Convert image to [C, H, W] and normalize to [0, 1]
         ])
         return transform(Image.open(image_path).convert('RGB'))
 
     def process_keypoints(self, annotations, image_info):
         """
         Extract keypoints and their visibility from annotations.
-
-        Args:
-            annotations (list): List of annotations for the image.
-            image_info (dict): Information about the image (width, height).
-
-        Returns:
-            np.ndarray: Keypoints (num_keypoints x 2).
-            np.ndarray: Visibility (num_keypoints).
         """
         if not annotations:
-            # No annotations for this image, return empty keypoints and visibility
+            # if no annotations, return empty keypoints and visibility
             print(f"Warning: No annotations found for image ID {image_info['id']}.")
-            num_keypoints = 13  # Assuming 13 keypoints as per COCO format
+            num_keypoints = 13
             return np.zeros((num_keypoints, 2), dtype=np.float32), np.zeros((num_keypoints,), dtype=np.int32)
 
         num_keypoints = len(annotations[0]['keypoints']) // 3
@@ -248,7 +233,7 @@ class SwimmerDataset(Dataset):
             visibility[:] = kp[:, 2]
 
 
-        # Scale keypoints to match resized image dimensions
+        # scale keypoints to match resized image dimensions
         orig_width, orig_height = image_info['width'], image_info['height']
         scale_x, scale_y = self.image_size[1] / orig_width, self.image_size[0] / orig_height
         keypoints[:, 0] *= scale_x
@@ -260,19 +245,12 @@ class SwimmerDataset(Dataset):
     def create_heatmaps(self, keypoints, visibility):
         """
         Generate heatmaps for each keypoint, resized to match the image dimensions.
-
-        Args:
-            keypoints (np.ndarray): Keypoint coordinates.
-            visibility (np.ndarray): Visibility flags.
-
-        Returns:
-            np.ndarray: Heatmaps for each keypoint.
         """
         height, width = self.image_size
         heatmaps = np.zeros((len(keypoints), height, width), dtype=np.float32)
 
         for i, (kp, vis) in enumerate(zip(keypoints, visibility)):
-            if vis > 0:  # Only create heatmap for visible keypoints
+            if vis > 0:  # only create heatmap for visible keypoints
                 heatmaps[i] = self.gaussian_heatmap(kp, self.image_size)
 
         return heatmaps
@@ -280,14 +258,6 @@ class SwimmerDataset(Dataset):
     def gaussian_heatmap(self, keypoint, image_size, sigma=2):
         """
         Generate a Gaussian heatmap for a single keypoint.
-
-        Args:
-            keypoint (tuple): Keypoint (x, y).
-            image_size (tuple): (height, width) of the image.
-            sigma (float): Standard deviation of the Gaussian.
-
-        Returns:
-            np.ndarray: Gaussian heatmap.
         """
         height, width = image_size
         x, y = int(keypoint[0]), int(keypoint[1])
