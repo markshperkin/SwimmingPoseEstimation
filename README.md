@@ -50,7 +50,7 @@ This script will estimate keypoints found in the video and output a new video wi
 
 ### 2. Training the Model
 
-The data loader combines all datasets into one. <br> After a new minimum has been found, the trainer will save the model as a checkpoint.pth.
+Training the model will require NVidia GPU. In order to modify the learning rate, batch size, and the number of epochs go to lines 142 and 145. After a new minimum has been found, the trainer will save the model as a checkpoint.pth.
 <br> To initialize the training, run the `hrnetTrainer.py`
 ```bash
 python hrnetTrainer.py
