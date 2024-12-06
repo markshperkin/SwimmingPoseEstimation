@@ -57,20 +57,20 @@ python hrnetTrainer.py
 ```
 ### 3. System Testers
 There are a few scripts to test various components of the system.
-# Test the Model on One Frame:
+## Test the Model on One Frame:
 The `hrnetTester.pt` script will test the accuracy of the model by loading a single frame on a desired model and showing it with the corresponding keypoints, the target ground truth for each keypoint (GT keypoint n), the confidence level for each predicted keypoint, 
 the ground truth for each predicted keypoint (Pred Keypoint n), and the Euclidean distance from the target keypoint to the predicted keypoint.
 <br>First, open `hrnetTester.pt` and add the desired model and frame for testing on lines 165 and 174. Next run `hrnetTester.py.
 ```bash
 python hrnetTester.py
 ```
-# Test the Data Augmentation Functionality:
+## Test the Data Augmentation Functionality:
 The `testerAugmentation.py` script will test three data augmentation techniques, Horizontal Flip, Rotation, and Translation. The function will select a random frame from the dataset and apply the augmentations, showing the before and after frames with the corresponding keypoints.
 <br> To run the augmentation tester:
 ```bash
 python testerAugmentation.py
 ```
-# Test the Data Loader:
+## Test the Data Loader:
 The `testerDATALOADER.py` script will test the functionality of the dataloader by laoding the dataset and displaying a batch of 4 frames with their name and coresponding keypoints.
 <br> To run the dataloader tester:
 ```bash
