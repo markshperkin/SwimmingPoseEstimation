@@ -19,7 +19,7 @@ This project's implementation draws inspiration from Bin Xiao's official HRNet r
 - **HRNet Architecture**: Designed to maintain high-resolution representations for accurate spatial keypoint detection.
 - **Custom Dataset**: Tailored for underwater swimming poses, annotated with 13 keypoints to represent swimmer biomechanics.
 
-### Installation
+## Installation
 
 1. Clone this repository to your local machine:
     ```bash
