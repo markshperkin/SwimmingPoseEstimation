@@ -8,7 +8,6 @@ from torchvision.transforms import ToTensor, Resize, Compose
 from pose_hrnet import get_pose_net
 import yaml
 from PIL import Image
-import os
 
 class VideoPoseEstimator:
     def __init__(self, model, config, device="cuda", image_size=(256, 256)):
@@ -179,7 +178,7 @@ if __name__ == "__main__":
 
     # load the trained model
     model = get_pose_net(config, is_train=False)
-    model.load_state_dict(torch.load("hrnet_checkpoint.pth"))  # replace with the model's path
+    model.load_state_dict(torch.load("411Fmodel.pth"))  # replace with the model's path
 
     # initialize the video pose estimator
     video_pose_estimator = VideoPoseEstimator(model, config)

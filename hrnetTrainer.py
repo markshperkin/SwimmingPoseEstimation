@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader
 from dataloader import SwimmerDataset
 from pose_hrnet import get_pose_net
 from loss import JointsMSELoss
-import os
 import time
 import yaml
 

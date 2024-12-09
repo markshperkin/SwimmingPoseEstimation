@@ -4,11 +4,6 @@
 # Written by Bin Xiao (Bin.Xiao@microsoft.com)
 # Comented by Mark Shperkin
 # ------------------------------------------------------------------------------
-
-# from __future__ import absolute_import
-# from __future__ import division
-# from __future__ import print_function
-
 import os
 import logging
 

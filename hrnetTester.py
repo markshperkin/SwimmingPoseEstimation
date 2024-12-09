@@ -162,7 +162,7 @@ class HRNetTester:
 
 if __name__ == "__main__":
     config_path = "config.yaml"
-    weights_path = "411Fmodel.pth"  # Update this for the model file path
+    weights_path = "84Fmodel.pth"  # Update this for the model file path
 
     # initialize the tester
     tester = HRNetTester(config_path, batch_size=1, device="cuda")
@@ -171,4 +171,4 @@ if __name__ == "__main__":
     tester.load_weights(weights_path)
 
     # test and visualize
-    tester.test_and_visualize(frame_index=120)
+    tester.test_and_visualize(frame_index=190)
