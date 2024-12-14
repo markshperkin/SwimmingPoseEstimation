@@ -80,4 +80,4 @@ python testerDATALOADER.py
 
 This project was developed as part of the Neural Network class under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
 ## Project Report
-[ProjectReport (1).pdf](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf)
+Please click [here](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf) to see the final project report made for Neural Networks class under Professor Narayanan.
