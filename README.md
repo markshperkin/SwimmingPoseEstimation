@@ -65,10 +65,7 @@ The `testerAugmentation.py` script will test three data augmentation techniques,
 <br> To run the augmentation tester:
 ```bash
 python testerAugmentation.py
-```
-## Class Project
 
-This project was developed as part of the Neural Network class under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
 
 ```
 ### Test the Data Loader:
@@ -77,3 +74,8 @@ The `testerDATALOADER.py` script will test the functionality of the dataloader b
 ```bash
 python testerDATALOADER.py
 ```
+
+
+## Class Project
+
+This project was developed as part of the Neural Network class under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
