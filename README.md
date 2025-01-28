@@ -4,6 +4,9 @@
 This project focuses on adapting a High-Resolution Network (HRNet) for pose estimation in an underwater swimming environment. Pose estimation underwater presents unique challenges, including light refraction, motion distortion, and occlusions caused by water turbulence. 
 Leveraging HRNet's ability to maintain high-resolution representations throughout the process, this project aims to overcome these obstacles and achieve accurate keypoint detection.
 
+## Project Report
+Please click [here](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf) to see the final project report made for Neural Networks class under Professor Narayanan.
+
 ## Data Collection
 The dataset for this project was collected from the **University of South Carolina Swim and Dive Team**. The athletes' performances were recorded during training sessions to generate a comprehensive dataset for underwater pose estimation. 
 You can learn more about the swim and dive team [here](https://gamecocksonline.com/sports/swimming/).
@@ -79,5 +82,4 @@ python testerDATALOADER.py
 ## Class Project
 
 This project was developed as part of the Neural Network class under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
-## Project Report
-Please click [here](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf) to see the final project report made for Neural Networks class under Professor Narayanan.
+
