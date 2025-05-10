@@ -43,7 +43,7 @@ This project's implementation draws inspiration from Bin Xiao's official HRNet r
 
 First, open `Tester.py` and add the model and input video file paths in lines 182 and 188. <br>Next, run the `Tester.py` script. 
 ```bash
-python train_model.py
+python Tester.py
 ```
 This script will estimate keypoints found in the video and output a new video with the estimated keypoints.
 
