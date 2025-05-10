@@ -78,8 +78,8 @@ The `testerDATALOADER.py` script will test the functionality of the dataloader b
 python testerDATALOADER.py
 ```
 
-
 ## Class Project
 
-This project was developed as part of the Neural Network class under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
+This project was developed as part of the Neural Network class [Neural Networks and Their Applications class](https://cse.sc.edu/class/584
+) under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) at the University of South Carolina.
 
