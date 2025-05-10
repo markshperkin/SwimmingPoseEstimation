@@ -80,5 +80,5 @@ python testerDATALOADER.py
 
 ## Class Project
 
-This project was developed as part of [Neural Networks and Their Applications class](https://cse.sc.edu/class/584) and [Machine Learning Systems class](https://cse.sc.edu/class/585) under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) and [Professor Pooyan Jamshidi](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/Jamshidi.php)at the University of South Carolina.
+This project was developed as part of [Neural Networks and Their Applications class](https://cse.sc.edu/class/584) and [Machine Learning Systems class](https://cse.sc.edu/class/585) under the instruction of [Professor Vignesh Narayanan](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/narayanan_vignesh.php) and [Professor Pooyan Jamshidi](https://sc.edu/study/colleges_schools/engineering_and_computing/faculty-staff/Jamshidi.php) at the University of South Carolina.
 
