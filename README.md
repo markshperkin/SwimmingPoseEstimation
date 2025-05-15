@@ -5,7 +5,7 @@ This project focuses on adapting a High-Resolution Network (HRNet) for pose esti
 Leveraging HRNet's ability to maintain high-resolution representations throughout the process, this project aims to overcome these obstacles and achieve accurate keypoint detection.
 
 ## Project Report
-Please click [here](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf) to see the final project report made for Neural Networks class under Professor Narayanan.
+Please click [here](https://github.com/user-attachments/files/18137701/ProjectReport.1.pdf) to see the final project report.
 
 ## Data Collection
 The dataset for this project was collected from the **University of South Carolina Swim and Dive Team**. The athletes' performances were recorded during training sessions to generate a comprehensive dataset for underwater pose estimation. 
